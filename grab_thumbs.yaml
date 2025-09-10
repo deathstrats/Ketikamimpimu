@@ -1,0 +1,61 @@
+name: Build Fish PNGs
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install requests tqdm
+      - name: Grab thumbnails
+        run: |
+          python - <<'PY'
+          import os, re, time, json, pathlib, requests
+          FISH_DB_URL = "https://raw.githubusercontent.com/deathstrats/Ketikamimpimu/refs/heads/main/all_fishes%20(4).lua"
+          RAW_BASE_URL = "https://raw.githubusercontent.com/${{ github.repository }}/main/fish_png"
+          OUT_DIR = pathlib.Path("fish_png"); OUT_DIR.mkdir(exist_ok=True)
+          db = requests.get(FISH_DB_URL, timeout=30).text
+          name_pat = re.compile(r'Name\s*=\s*"([^"]+)"')
+          icon_pat = re.compile(r'Icon\s*=\s*"rbxassetid://(\d+)"')
+          def sanitize(n):
+              import re
+              n = n.strip().replace("/", "-")
+              n = re.sub(r"[^A-Za-z0-9 _\-\(\)\[\]\.]", "", n)
+              n = re.sub(r"\s+", " ", n)
+              return n
+          blocks = re.split(r"return\s*{", db)[1:]
+          seen = {}
+          for b in blocks:
+              name_m = name_pat.search(b); icon_m = icon_pat.search(b)
+              if name_m and icon_m:
+                  aid = icon_m.group(1); nm = name_m.group(1)
+                  seen.setdefault(aid, nm)
+          mapping = {}
+          s = requests.Session()
+          for aid, nm in seen.items():
+              safe = sanitize(nm)
+              fn = OUT_DIR / f"{safe}__{aid}.png"
+              if not fn.exists() or fn.stat().st_size < 4000:
+                  url = f"https://www.roblox.com/asset-thumbnail/image?assetId={aid}&width=512&height=512&format=png"
+                  r = s.get(url, timeout=30)
+                  if r.status_code == 200 and r.headers.get("content-type","").startswith("image/"):
+                      open(fn, "wb").write(r.content)
+                  else:
+                      print("WARN: fail", aid, nm, r.status_code)
+              mapping[nm] = f"{RAW_BASE_URL}/{fn.name}" if fn.exists() else "https://i.imgur.com/OB7YfS8.png"
+          json.dump(mapping, open("fish_png_map.json","w"), ensure_ascii=False, indent=2)
+          PY
+      - name: Commit images & map
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add fish_png/ fish_png_map.json || true
+          git diff --cached --quiet || git commit -m "build: refresh fish PNG & map"
+          git push
