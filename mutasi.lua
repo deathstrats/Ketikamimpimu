@@ -27,7 +27,7 @@ return {
     Probability = {
         Chance = 2.5;
     };
-    SellMultiplier = 1.3;
+    SellMultiplier = 130.0%;
     Versions = 1;
     _moduleScript = nil;
 ,
@@ -63,7 +63,7 @@ return {
     Probability = {
         Chance = 0.5;
     };
-    SellMultiplier = 3;
+    SellMultiplier = 300.0%;
     Versions = 1;
     _moduleScript = nil;
 ,
@@ -99,7 +99,7 @@ return {
     Probability = {
         Chance = 0.6;
     };
-    SellMultiplier = 2.8;
+    SellMultiplier = 280.0%;
     Versions = 1;
     _moduleScript = nil;
 ,
@@ -135,7 +135,7 @@ return {
     Probability = {
         Chance = 2.2;
     };
-    SellMultiplier = 2.6;
+    SellMultiplier = 260.0%;
     Versions = 1;
     _moduleScript = nil;
 ,
@@ -171,7 +171,7 @@ return {
     Probability = {
         Chance = 5.5;
     };
-    SellMultiplier = 2;
+    SellMultiplier = 200.0%;
     Versions = 2;
     _moduleScript = nil;
 ,
@@ -207,7 +207,7 @@ return {
     Probability = {
         Chance = 0.5;
     };
-    SellMultiplier = 5.5;
+    SellMultiplier = 550.0%;
     Versions = 1;
     _moduleScript = nil;
 ,
@@ -243,7 +243,7 @@ return {
     Probability = {
         Chance = 0.6;
     };
-    SellMultiplier = 3.8;
+    SellMultiplier = 380.0%;
     Versions = 3;
     _moduleScript = nil;
 ,
@@ -279,7 +279,7 @@ return {
     Probability = {
         Chance = 1.4;
     };
-    SellMultiplier = 2.5;
+    SellMultiplier = 250.0%;
     Versions = 1;
     _moduleScript = nil;
 ,
@@ -315,7 +315,7 @@ return {
     Probability = {
         Chance = 1.6;
     };
-    SellMultiplier = 2.8;
+    SellMultiplier = 280.0%;
     Versions = 1;
     _moduleScript = nil;
 ,
@@ -351,7 +351,7 @@ return {
     Probability = {
         Chance = 0.9;
     };
-    SellMultiplier = 2.4;
+    SellMultiplier = 240.0%;
     Versions = 1;
     _moduleScript = nil;
 ,
@@ -387,7 +387,7 @@ return {
     Probability = {
         Chance = 0.9;
     };
-    SellMultiplier = 3.2;
+    SellMultiplier = 320.0%;
     Versions = 1;
     _moduleScript = nil;
 ,
@@ -423,7 +423,7 @@ return {
     Probability = {
         Chance = 0.7;
     };
-    SellMultiplier = 3.8;
+    SellMultiplier = 380.0%;
     Versions = 1;
     _moduleScript = nil;
 ,
@@ -459,7 +459,7 @@ return {
     Probability = {
         Chance = 0.9;
     };
-    SellMultiplier = 3;
+    SellMultiplier = 300.0%;
     Versions = 1;
     _moduleScript = nil;
 ,
@@ -495,7 +495,7 @@ return {
     Probability = {
         Chance = 4;
     };
-    SellMultiplier = 1.2;
+    SellMultiplier = 120.0%;
     Versions = 1;
     _moduleScript = nil;
 ,
