@@ -1,14 +1,14 @@
 name: Grab thumbnails
 
 on:
-  workflow_dispatch: {}
-
-permissions:
-  contents: write   # penting: biar bisa push
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
     steps:
       - uses: actions/checkout@v4
 
@@ -16,71 +16,50 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install deps
+      - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install requests tqdm
+          pip install requests tqdm pillow
 
       - name: Grab thumbnails
         run: |
           python - <<'PY'
-          import os, re, json, requests, time
-          from tqdm import tqdm
+import os, json, requests
+from PIL import Image
+from io import BytesIO
+import tqdm
 
-          OUT_DIR = "thumbnails"
-          os.makedirs(OUT_DIR, exist_ok=True)
+# Folder output
+out_dir = "thumbnails"
+os.makedirs(out_dir, exist_ok=True)
 
-          # file lua kamu (ganti kalau beda)
-          LUA_URL = "https://raw.githubusercontent.com/deathstrats/Ketikamimpimu/main/all_fishes%20(4).lua"
+# Contoh: ganti path dengan file database ikanmu
+db_url = "https://raw.githubusercontent.com/deathstrats/Ketikamimpimu/main/all_fishes%20(4).lua"
+print(f"Fetching fish database from {db_url}")
+r = requests.get(db_url)
+data = r.text
 
-          print("Download lua ...")
-          text = requests.get(LUA_URL, timeout=60).text
+# Cari semua assetId di file (sederhana)
+import re
+asset_ids = re.findall(r"rbxassetid://(\d+)", data)
+print(f"Found {len(asset_ids)} asset IDs")
 
-          # ambil Icon dan Name
-          items = []
-          block = {}
-          for line in text.splitlines():
-            m_icon = re.search(r'Icon\s*=\s*"rbxassetid://(\d+)"', line)
-            m_name = re.search(r'Name\s*=\s*"([^"]+)"', line)
-            if m_icon: block["icon"]=m_icon.group(1)
-            if m_name: block["name"]=m_name.group(1)
-            if "}" in line and block.get("icon") and block.get("name"):
-              items.append(block); block = {}
+for asset_id in tqdm.tqdm(asset_ids):
+    url = f"https://www.roblox.com/asset-thumbnail/image?assetId={asset_id}&width=512&height=512&format=png"
+    resp = requests.get(url)
+    if resp.status_code == 200:
+        img = Image.open(BytesIO(resp.content))
+        filename = f"{out_dir}/{asset_id}.png"
+        img.save(filename)
+    else:
+        print(f"Failed to fetch {asset_id}")
 
-          print(f"Found {len(items)} entries")
+print("Download selesai, file disimpan di folder:", out_dir)
+PY
 
-          def norm(name:str)->str:
-            s = name.strip().lower()
-            s = re.sub(r'[^a-z0-9]+','_',s).strip('_')
-            return s or "unknown"
-
-          def thumb_url(asset_id:str)->str:
-            return f"https://www.roblox.com/asset-thumbnail/image?assetId={asset_id}&width=512&height=512&format=png"
-
-          ok, fail = 0,0
-          for it in tqdm(items):
-            url = thumb_url(it["icon"])
-            out = os.path.join(OUT_DIR, f"{norm(it['name'])}.png")
-            try:
-              r = requests.get(url, timeout=60)
-              if r.status_code==200 and r.content:
-                with open(out,"wb") as f: f.write(r.content)
-                ok+=1
-              else:
-                fail+=1
-            except Exception as e:
-              fail+=1
-          print(f"OK={ok} FAIL={fail}")
-          PY
-
-      - name: Commit PNGs
+      - name: Commit & Push Generated Files
         run: |
-          if [ -n "$(git status --porcelain)" ]; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add thumbnails/*.png
-            git commit -m "Add/Update fish thumbnails (auto)"
-            git push
-          else
-            echo "No changes to commit."
-          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add thumbnails || echo "No files found"
+          git commit -m "chore: add generated thumbnails [skip ci]" || echo "No changes to commit"
+          git push
